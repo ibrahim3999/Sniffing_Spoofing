@@ -1,11 +1,11 @@
 all: r
 
 r: sniffer.c
-	gcc -Wall -g -o sniff sniffer.c
+	gcc sniffer.c -o sniffer -lpcap
 
 clean:
-	rm -f *.o sniff
+	rm -f *.o sniffer
 
 run:
-	./sniff
+	./sniffer
 

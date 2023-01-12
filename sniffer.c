@@ -74,13 +74,15 @@ int count =0;
     if (result == 0) continue;  // Timeout expired, continue loop
     if (result == -1 || result == -2) break;  // Error, break loop
 
-        printf("the legth of packet is %d\n",header->len);
-        printf("the payload %d, %d,%d,%d\n",packet[38],packet[39],packet[40],packet[41]);
-        printf("the payload %d, %d,%d,%d\n",packet[55],packet[56],packet[57],packet[58]);
+        
         if (packet[12]==8&&packet[13]==0){ //Checking if its IPv4 packet
-            fprintf(f, "{source_ip: %02X %02X %02X %02X,dest_ip: %02X %02X %02X %02X,source_port: %02X %02X,dest_port: %02X %02X,timestamp: %02X,total_length: %02X} \n",
+            fprintf(f, "{source_ip: %d %d %d %d,dest_ip: %d %d %d %d,source_port: %d %d,dest_port: %d %d,timestamp: %d,total_length: %d} \n",
              packet[26], packet[27], packet[28], packet[29],packet[30], packet[31], packet[32], packet[33],
              packet[34], packet[35],packet[36], packet[37],(unsigned int)header->ts.tv_sec,header->len);
+             
+             printf("{source_ip: %d %d %d %d,dest_ip: %d %d %d %d,source_port: %d %d,dest_port: %d %d,timestamp: %ld,total_length: %d} \n",
+             packet[26], packet[27], packet[28], packet[29],packet[30], packet[31], packet[32], packet[33],
+             packet[34], packet[35],packet[36], packet[37],(unsigned long)header->ts.tv_sec,header->len);
         //printf("source_ip: %02X %02X %02X %02X\n", packet[26], packet[27], packet[28], packet[29]);
         //printf("dest_ip: %02X %02X %02X %02X\n", packet[30], packet[31], packet[32], packet[33]);
         /*if(packet[23]==6) {  //Checking if its TCP

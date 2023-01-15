@@ -66,7 +66,7 @@ int count =0;
   // Loop, capturing and processing packets
   while (1)
   {
-    struct pcap_pkthdr *header;  // Packet header
+    struct pcap_pkthdr *header;  // Packet (unsigned long)
     const u_char *packet;  // Packet data
 
     // Capture a packet
@@ -76,20 +76,53 @@ int count =0;
 
         
         if (packet[12]==8&&packet[13]==0){ //Checking if its IPv4 packet
-            fprintf(f, "{source_ip: %d %d %d %d,dest_ip: %d %d %d %d,source_port: %d %d,dest_port: %d %d,timestamp: %d,total_length: %d} \n",
+            fprintf(f, "{source_ip: %d %d %d %d,dest_ip: %d %d %d %d,source_port: %d ,dest_port: %d,timestamp: %ld,total_length: %d} \n",
              packet[26], packet[27], packet[28], packet[29],packet[30], packet[31], packet[32], packet[33],
-             packet[34], packet[35],packet[36], packet[37],(unsigned int)header->ts.tv_sec,header->len);
+             (packet[34] << 8) | packet[35],(packet[36] << 8) | packet[37],(unsigned long)header->ts.tv_sec,header->len);
              
-             printf("{source_ip: %d %d %d %d,dest_ip: %d %d %d %d,source_port: %d %d,dest_port: %d %d,timestamp: %ld,total_length: %d} \n",
+             printf("{source_ip: %d %d %d %d,dest_ip: %d %d %d %d,source_port: %d,dest_port: %d,timestamp: %ld,total_length: %d} \n",
              packet[26], packet[27], packet[28], packet[29],packet[30], packet[31], packet[32], packet[33],
-             packet[34], packet[35],packet[36], packet[37],(unsigned long)header->ts.tv_sec,header->len);
+             (packet[34] << 8) | packet[35],(packet[36] << 8) | packet[37],(unsigned long)header->ts.tv_sec,header->len);
+             if((packet[47]&0x04)==0x04){
+            printf("cache flag is set\n");
+            }
+            else{
+                printf("cache flag is not set\n");
+            }
+
+           /////////////////////////
+           
+            if ((packet[39] & 0x20) == 0x20) {
+            printf("Type flag is set1111111111111111111111111111111111\n");
+            } else {
+                printf("Type flag is not set\n");
+            }
+           
+           if (packet[12]==8&&packet[13]==0) { //Checking if it's an IPv4 packet
+            int ip_header_length = (packet[14] & 0x0F) * 4; // Extract the IP (unsigned long) length
+            int tcp_offset = ip_header_length + 12; // Extract the offset of the TCP (unsigned long)
+            int status_code = packet[tcp_offset + 13]; // Extract the status code
+            printf("status code: %d\n", status_code);
+            
+           }
+
+          
+          /*
+          if (packet[12]==8&&packet[13]==0) { //Checking if it's an IPv4 packet
+          int ip_header_length = (packet[14] & 0x0F) * 4; // Extract the IP (unsigned long) length
+          int tcp_offset = ip_header_length + 12; // Extract the offset of the TCP (unsigned long)
+          int status_code = packet[tcp_offset + 13]; // Extract the status code
+          printf("status code: %d\n", status_code);
+          
+          */
+
         //printf("source_ip: %02X %02X %02X %02X\n", packet[26], packet[27], packet[28], packet[29]);
         //printf("dest_ip: %02X %02X %02X %02X\n", packet[30], packet[31], packet[32], packet[33]);
         /*if(packet[23]==6) {  //Checking if its TCP
           //printf("source_port: %02X %02X\n", packet[34], packet[35]);
           //printf("dest_port: %02X %02X\n", packet[36], packet[37]);
-          //printf("timestamp: %02X\n", (unsigned int)header->ts.tv_sec);
-          //printf("total_length: %02X\n",header->len);
+          //printf("timestamp: %02X\n", (unsigned int)(unsigned long)->ts.tv_sec);
+          //printf("total_length: %02X\n",(unsigned long)->len);
 
 
         }

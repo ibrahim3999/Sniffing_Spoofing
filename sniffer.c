@@ -130,14 +130,10 @@ int count =0;
         printf("###########################\n");
         
     }
-
-
-    
         count++;
         if(count==10){
             break;
         }
-    
   }
     fclose(f);
   // Close the packet capture handle

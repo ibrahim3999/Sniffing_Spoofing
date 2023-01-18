@@ -23,7 +23,6 @@
 unsigned short in_cksum(unsigned short *addr, int len);
 
 struct ip ip_pkg;
-//struct udphdr udp_pkg;
 struct icmp icmp_pkg;
 int sockfd;
 int enable = 1;
@@ -33,31 +32,16 @@ struct sigaction sa;
 
 char sbuffer[32], dbuffer[32];
 
-void interrupt_handler(int sig)
-{
-	printf("|  Cleaning up and exiting...\n");
-	free(packet);
-	exit(0);
-}
+
 
 int main(int argc, char* argv[])
 {
 	
-		printf("\nUsage: \"%s SOURCEADDR [DESTADDR]\" (DESTADDR default: 255.255.255.255)\n\nRunning in interactive mode...\n", argv[0]);
-		printf("Source host address: ");
+		printf("Input Source host address: ");
 		scanf("%s", sbuffer);
-		printf("Destination host address: ");
+		printf("Input Destination host address: ");
 		scanf("%s", dbuffer);
 	
-	
-	sa.sa_handler = interrupt_handler;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	
-	if (sigaction(SIGINT, &sa, NULL) == -1) {
-		perror("sigaction");
-		return 1;
-	}
 	
 	printf("Setting up IP part...\n");
 	
@@ -76,7 +60,7 @@ int main(int argc, char* argv[])
 	ip_pkg.ip_sum = in_cksum((unsigned short *)&ip_pkg, sizeof(ip_pkg));
 	
 	memcpy(packet, &ip_pkg, sizeof(ip_pkg));
-	printf(" done!\n");
+	
 	
 	printf("Setting up ICMP part...\n");
 	
@@ -89,28 +73,28 @@ int main(int argc, char* argv[])
 	
 	memcpy(packet + 20, &icmp_pkg, 8);
 	
-	printf(" done!\n");
+	
 	
 	printf("Setting up socket...\n");
 	if((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0)
 	{
-		perror("socket");
-		fprintf(stderr, "\n(You have to run as root to use raw sockets...)\n\n");
+		perror("setting socket failed!");
+		fprintf(stderr, "\nsetting socket failed!\n\n");
 		return 1;
 	}
-	printf(" done!\n");
 	
-	printf("Telling socket to send my packet without header & enable broadcasting...\n");
+	
+	
 	if (setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL,   &enable, sizeof(enable)) < 0 ||
 	    setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(enable)) < 0)
 	{
-		perror("setsockopt");
+		perror("setsockopt failed!");
 		return 1;
 	}
 	
 	memset(&iaddr, 0, sizeof(iaddr));
 	
-	printf(" done!\n");
+	
 	
 	iaddr.sin_family = AF_INET;
 	iaddr.sin_addr.s_addr = ip_pkg.ip_dst.s_addr;
@@ -121,16 +105,17 @@ int main(int argc, char* argv[])
 	{
 		if(sendto(sockfd, packet, PACKET_SIZE, 0, (struct sockaddr*) &iaddr, sizeof(struct sockaddr)) < 0)
 		{
-			perror("sendto");
+			perror("sendto the packets failed!");
 			break;
 		}
 	}
+	//free the memory allocated
 	free(packet);
 	return 1;
 }
 
 
-//NOT MINE! (From "BSD Tahoe")
+
 unsigned short in_cksum(unsigned short *addr, int len)
 {
 	int nleft = len;

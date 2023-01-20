@@ -14,6 +14,7 @@
 #include <netinet/ip_icmp.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 #define PACKET_SIZE 60
 #define SOURCE_ADDR sbuffer
@@ -108,11 +109,29 @@ int main(int argc, char* argv[])
 			perror("sendto the packets failed!");
 			break;
 		}
-	}
+		
+		// Set up a buffer to store the received packet
+		u_char recv_packet[PACKET_SIZE];
+		socklen_t addr_len = sizeof(iaddr);
+		printf("sending ICMP ECHO request\n");
+		// Receive a packet
+		int recv_bytes = recvfrom(sockfd, recv_packet, PACKET_SIZE, 0, (struct sockaddr *)&iaddr, &addr_len);
+		if (recv_bytes ==-1) {
+			// normal return when timeout
+        	if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return 0;
+        	}
+
+        	return -1;
+			
+		}
+		
+		
+		
+		}
 	//free the memory allocated
 	free(packet);
 	return 1;
-}
 
 
 
